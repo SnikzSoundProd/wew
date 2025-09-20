@@ -5,6 +5,13 @@ cmake_minimum_required(VERSION 3.16)
 # Название нашего проекта и язык
 project(SimpleEngine LANGUAGES CXX)
 
+if(MSVC)
+    # Говорим, что наши .cpp/.h файлы в UTF-8
+    add_compile_options(/source-charset:utf-8)
+    # Говорим, что исполняемый файл и ВЫВОД КОМПИЛЯТОРА тоже должны быть в UTF-8
+    add_compile_options(/execution-charset:utf-8)
+endif()
+
 # Устанавливаем стандарт C++17 и требуем его поддержки
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

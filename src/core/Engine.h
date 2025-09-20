@@ -5,6 +5,7 @@
 #include "Scene.h"
 #include "../graphics/Camera.h"
 #include "../graphics/Shader.h"
+#include "../editor/ConsolePanel.h"
 
 class Engine {
 public:
@@ -36,6 +37,8 @@ private:
     void processInput(GLFWwindow *window);
     std::shared_ptr<Shader> m_outlineShader;
     bool m_isSimulating = false;
+
+    ConsolePanel m_consolePanel;
 
     float m_physicsAccumulator = 0.0f; // <-- Наша "копилка"
     const float m_physicsTimeStep = 1.0f / 60.0f; // <-- Шаг симуляции (60 раз в секунду)

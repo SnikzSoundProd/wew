@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "ResourceManager.h"
 #include "SceneSerializer.h"
+#include "Log.h" 
 #include <iostream>
 #include <memory>
 #include <vector> // <--- ВОТ ОН, НАШ ГЛАВНЫЙ ГЕРОЙ
@@ -75,6 +76,10 @@ void Engine::init() {
 
     PhysicsEngine::GetInstance().init();
     m_outlineShader = ResourceManager::GetInstance().LoadShader("outline", "shaders/outline.vert", "shaders/outline.frag");
+
+    Log::GetInstance().Info("Engine Initialized Successfully. Welcome, bro!");
+    Log::GetInstance().Warn("This is a test warning.");
+    Log::GetInstance().Error("And this is a test error.");
 
     // ИСПРАВЛЕНИЕ: Добавляем недостающие шейдеры
     auto simpleShader = ResourceManager::GetInstance().LoadShader("simple", "shaders/simple.vert", "shaders/simple.frag");
@@ -448,6 +453,7 @@ void Engine::renderUI() {
     }
 }
 
+    m_consolePanel.render();
     // Рендерим все окна ImGui
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
