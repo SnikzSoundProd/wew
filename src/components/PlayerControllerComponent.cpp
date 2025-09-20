@@ -2,6 +2,8 @@
 #include "../core/GameObject.h"
 #include "RigidbodyComponent.h"
 #include "AnimationComponent.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 #include <GLFW/glfw3.h>
 #include <iostream> // Для отладки
 
@@ -9,6 +11,8 @@ void PlayerControllerComponent::init() {
     m_rigidbody = gameObject->getComponent<RigidbodyComponent>();
     m_animComp = gameObject->getComponent<AnimationComponent>();
     m_window = glfwGetCurrentContext();
+
+    m_targetRotation = glm::quat(glm::radians(gameObject->transform->rotation));
     
     // Отладка
     if (!m_window) {
@@ -69,6 +73,18 @@ void PlayerControllerComponent::update(float deltaTime) {
         body->setLinearVelocity(btVector3(horizontalVel.getX(), velocity.getY(), horizontalVel.getZ()));
     }
 
+    // --- НОВЫЙ БЛОК: ВРАЩЕНИЕ ПЕРСОНАЖА ---
+    if (force.length() > 0.1f) {
+        // 1. Вычисляем целевой угол
+        // Atan2 - магическая функция, которая правильно вычисляет угол по вектору
+        float targetAngle = atan2(force.getX(), force.getZ());
+        // 2. Создаем кватернион для этого угла (вокруг оси Y)
+        m_targetRotation = glm::angleAxis(targetAngle, glm::vec3(0, 1, 0));
+    }
+    
+    // 3. Плавно интерполируем текущий поворот к целевому
+    glm::quat currentRotation = glm::quat(glm::radians(gameObject->transform->rotation));
+    gameObject->transform->rotation = glm::degrees(glm::eulerAngles(glm::slerp(currentRotation, m_targetRotation, deltaTime * rotationSpeed)));
     // === ПРЫЖОК ===
     if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         float currentVelocityY = body->getLinearVelocity().getY();

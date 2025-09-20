@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <vector> // <--- ВОТ ОН, НАШ ГЛАВНЫЙ ГЕРОЙ
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
