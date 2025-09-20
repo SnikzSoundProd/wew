@@ -45,33 +45,45 @@ void PlayerControllerComponent::update(float deltaTime) {
 
     body->activate(true);
 
-    // === ДВИЖЕНИЕ С РАЗУМНЫМИ СИЛАМИ ===
+     // --- 1. ОПРЕДЕЛЯЕМ НАПРАВЛЕНИЕ ВВОДА ---
+    glm::vec3 moveDirection(0.0f);
+    if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS) moveDirection += glm::vec3(0, 0, 1);
+    if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS) moveDirection += glm::vec3(0, 0, -1);
+    if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS) moveDirection += glm::vec3(1, 0, 0);
+    if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS) moveDirection += glm::vec3(-1, 0, 0);
+    if (glm::length(moveDirection) > 0.1f) {
+        moveDirection = glm::normalize(moveDirection);
+    }
+
+    // --- 2. ВРАЩЕНИЕ ПЕРСОНАЖА И СИЛЫ ---
+    // Получаем горизонтальный поворот камеры
+    glm::quat cameraYaw = glm::angleAxis(glm::radians(m_camera->yaw), glm::vec3(0, 1, 0));
+    
+    // Поворачиваем вектор движения в соответствии с камерой
+    glm::vec3 rotatedMoveDirection = cameraYaw * moveDirection;
+    
     btVector3 force(0, 0, 0);
-    float forceAmount = 10.0f; // БЫЛО 500, СТАЛО 10!
+    if (glm::length(rotatedMoveDirection) > 0.1f) {
+        // Прикладываем силу в направлении, куда смотрит камера
+        force = btVector3(rotatedMoveDirection.x, 0, rotatedMoveDirection.z);
+        if(force.length() > 0.1f) force.normalize();
 
-    if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS) force += btVector3(0, 0, -1);
-    if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS) force += btVector3(0, 0, 1);
-    if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS) force += btVector3(-1, 0, 0);
-    if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS) force += btVector3(1, 0, 0);
-
-    if (force.length() > 0.1f) {
-        force.normalize();
-        body->applyCentralForce(force * forceAmount);
+        // Поворачиваем персонажа в сторону движения
+        float targetAngle = atan2(force.getX(), force.getZ());
+        m_targetRotation = glm::angleAxis(targetAngle, glm::vec3(0, 1, 0));
     }
 
-    if (m_animComp) {
-        if (force.length() > 0.1) { // Если мы движемся
-            m_animComp->play("run");
-        } else { // Если стоим на месте
-            m_animComp->play("idle");
-        }
-    }
-    
-    // === ОГРАНИЧЕНИЕ СКОРОСТИ ===
+    // ТВОЙ ТЮНИНГ СИЛЫ!
+    float forceAmount = 10.0f;
+    body->applyCentralForce(force * forceAmount);
+
+    // Плавно поворачиваем
+    glm::quat currentRotation = glm::quat(glm::radians(gameObject->transform->rotation));
+    gameObject->transform->rotation = glm::degrees(glm::eulerAngles(glm::slerp(currentRotation, m_targetRotation, deltaTime * rotationSpeed)));
+
+    // --- ТВОЙ КОД ОГРАНИЧЕНИЯ СКОРОСТИ ---
     btVector3 velocity = body->getLinearVelocity();
-    float maxSpeed = 20.0f; // Максимальная скорость
-    
-    // Ограничиваем горизонтальную скорость (X и Z)
+    float maxSpeed = 20.0f;
     btVector3 horizontalVel(velocity.getX(), 0, velocity.getZ());
     if (horizontalVel.length() > maxSpeed) {
         horizontalVel.normalize();
@@ -79,27 +91,20 @@ void PlayerControllerComponent::update(float deltaTime) {
         body->setLinearVelocity(btVector3(horizontalVel.getX(), velocity.getY(), horizontalVel.getZ()));
     }
 
-    // --- НОВЫЙ БЛОК: ВРАЩЕНИЕ ПЕРСОНАЖА ---
-    if (force.length() > 0.1f) {
-        // 1. Вычисляем целевой угол
-        // Atan2 - магическая функция, которая правильно вычисляет угол по вектору
-        float targetAngle = atan2(force.getX(), force.getZ());
-        // 2. Создаем кватернион для этого угла (вокруг оси Y)
-        m_targetRotation = glm::angleAxis(targetAngle, glm::vec3(0, 1, 0));
+    // --- АНИМАЦИЯ ---
+    if (m_animComp) {
+        if (force.length() > 0.1f) m_animComp->play("run");
+        else m_animComp->play("idle");
     }
-    
-    // 3. Плавно интерполируем текущий поворот к целевому
-    glm::quat currentRotation = glm::quat(glm::radians(gameObject->transform->rotation));
-    gameObject->transform->rotation = glm::degrees(glm::eulerAngles(glm::slerp(currentRotation, m_targetRotation, deltaTime * rotationSpeed)));
-    // === ПРЫЖОК ===
+
+    // --- ПРЫЖОК ---
     if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        float currentVelocityY = body->getLinearVelocity().getY();
-        if (std::abs(currentVelocityY) < 1.0f) {
+        if (std::abs(body->getLinearVelocity().getY()) < 1.0f) {
             body->applyCentralImpulse(btVector3(0, jumpForce, 0));
             std::cout << "ПРЫЖОК!" << std::endl;
         }
     }
-
+    
      // --- НОВЫЙ БЛОК: СТРЕЛЬБА ---
     // glfwGetMouseButton проверяет клик, а не зажатие
     if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {

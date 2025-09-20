@@ -24,6 +24,7 @@ public:
     float angleAroundTarget = 0.0f;
     float pitchOffset = 30.0f;
     float followSpeed = 5.0f;
+    bool invertX = true;
 
     // --- ОБЪЯВЛЕНИЯ МЕТОДОВ ---
     Camera();
