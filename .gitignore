@@ -1,0 +1,26 @@
+# Папки сборки
+build/
+Build/
+build/
+**/build/
+
+# Настройки VS Code
+.vscode/
+
+# Файлы Visual Studio
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Исполняемые файлы и библиотеки
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.obj
+
+# Логи и временные файлы
+*.log
+*.tmp
