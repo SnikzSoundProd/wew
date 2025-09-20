@@ -7,6 +7,7 @@
 // Forward declaration, чтобы избежать циклической зависимости
 class RigidbodyComponent;
 class AnimationComponent;
+class Camera; // форвард-декларация
 
 class PlayerControllerComponent : public Component {
 public:
@@ -18,6 +19,7 @@ public:
     PlayerControllerComponent() = default;
 
     void init(); // Для поиска Rigidbody
+    void setCamera(Camera* camera);
     void init(GLFWwindow* window);
     void update(float deltaTime) override;
 

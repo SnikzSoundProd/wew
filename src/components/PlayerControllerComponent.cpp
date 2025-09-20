@@ -1,5 +1,6 @@
 #include "PlayerControllerComponent.h"
 #include "../core/GameObject.h"
+#include "../graphics/Camera.h"
 #include "../core/PhysicsEngine.h"
 #include "RigidbodyComponent.h"
 #include "AnimationComponent.h"
