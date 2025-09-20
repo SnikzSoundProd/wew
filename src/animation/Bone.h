@@ -1,28 +1,48 @@
+// --- FULL FIX FOR: Bone.h ---
 #pragma once
-#include "AnimData.h"
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
 
-class Bone {
-public:
-    Bone(const std::string& name, int ID, const aiNodeAnim* channel);
-    void update(float animationTime);
-    glm::mat4 getLocalTransform();
-    std::string getBoneName() const;
-    int getBoneID();
+#include <vector>
+#include <string>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp> // <-- Добавлен для translate/scale
+#include "KeyFrame.h"
+
+// Прямое объявление, чтобы компилятор знал о нем
+struct aiNodeAnim;
+
+struct Bone
+{
+	// --- ПУБЛИЧНЫЕ ДАННЫЕ (как в твоей версии) ---
+	std::vector<KeyPosition> m_Positions;
+	std::vector<KeyRotation> m_Rotations;
+	std::vector<KeyScale> m_Scales;
+	glm::mat4 m_LocalTransform;
+	std::string m_Name;
+	int m_ID;
+
+	// --- КОНСТРУКТОРЫ ---
+	Bone(); // Конструктор по умолчанию
+	// Конструктор, который будет вызываться при загрузке модели
+	Bone(const std::string& name, int ID, const aiNodeAnim* channel); 
+
+	// --- ОСНОВНЫЕ МЕТОДЫ ---
+	void Update(float animationTime); // <--- Переименовал в Update с большой буквы, как у тебя
+
+	// --- ГЕТТЕРЫ, ЧТОБЫ Animation.cpp мог их использовать ---
+	glm::mat4 getLocalTransform() const { return m_LocalTransform; }
+	const std::string& getBoneName() const { return m_Name; }
+	int getBoneID() const { return m_ID; }
+
+	// --- ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ПОИСКА ИНДЕКСА (как у тебя) ---
+	int GetPositionIndex(float animationTime) const;
+	int GetRotationIndex(float animationTime) const;
+	int GetScaleIndex(float animationTime) const;
+
 private:
-    template<typename T>
-    int getFrameIndex(float animationTime, const std::vector<KeyFrame<T>>& frames);
-    glm::mat4 interpolatePosition(float animationTime);
-    glm::mat4 interpolateRotation(float animationTime);
-    glm::mat4 interpolateScaling(float animationTime);
-    std::vector<KeyFrame<glm::vec3>> m_Positions;
-    std::vector<KeyFrame<glm::quat>> m_Rotations;
-    std::vector<KeyFrame<glm::vec3>> m_Scales;
-    int m_NumPositions;
-    int m_NumRotations;
-    int m_NumScalings;
-    glm::mat4 m_LocalTransform;
-    std::string m_Name;
-    int m_ID;
+	// --- ПРИВАТНЫЕ МЕТОДЫ ИНТЕРПОЛЯЦИИ (как у тебя) ---
+	float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime) const;
+	glm::mat4 InterpolatePosition(float animationTime);
+	glm::mat4 InterpolateRotation(float animationTime);
+	glm::mat4 InterpolateScaling(float animationTime);
 };

@@ -1,3 +1,4 @@
+// --- FULL FIX FOR: Animator.cpp ---
 #include "Animator.h"
 
 Animator::Animator(Animation* animation) {
@@ -12,6 +13,7 @@ Animator::Animator(Animation* animation) {
 void Animator::updateAnimation(float dt) {
     m_DeltaTime = dt;
     if (m_CurrentAnimation) {
+        // --- ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЕ ГЕТТЕРЫ ---
         m_CurrentTime += m_CurrentAnimation->getTicksPerSecond() * dt;
         m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->getDuration());
         calculateBoneTransform(&m_CurrentAnimation->getRootNode(), glm::mat4(1.0f));
@@ -30,22 +32,23 @@ void Animator::calculateBoneTransform(const AssimpNodeData* node, glm::mat4 pare
     Bone* bone = m_CurrentAnimation->findBone(nodeName);
 
     if (bone) {
-        bone->update(m_CurrentTime); // <-- Правильный вызов
-        nodeTransform = bone->getLocalTransform(); // <-- Правильный вызов
+        bone->Update(m_CurrentTime); // <-- Вызываем Update с большой буквы
+        nodeTransform = bone->getLocalTransform();
     }
 
     glm::mat4 globalTransformation = parentTransform * nodeTransform;
 
-    auto boneInfoMap = m_CurrentAnimation->getBoneIDMap();
-    if (boneInfoMap.find(nodeName) != boneInfoMap.end()) {
-        int index = boneInfoMap.at(nodeName).id; // Используем .at() для безопасности
+    const auto& boneInfoMap = m_CurrentAnimation->getBoneIDMap(); // <-- используем const&
+    if (boneInfoMap.count(nodeName)) { // <-- .count() безопаснее
+        int index = boneInfoMap.at(nodeName).id;
         glm::mat4 offset = boneInfoMap.at(nodeName).offset;
         m_FinalBoneMatrices[index] = globalTransformation * offset;
     }
 
-    for (int i = 0; i < node->childrenCount; i++)
+    for (size_t i = 0; i < node->children.size(); i++) // <-- Безопаснее через .size()
         calculateBoneTransform(&node->children[i], globalTransformation);
 }
+
 std::vector<glm::mat4> Animator::getFinalBoneMatrices() {
     return m_FinalBoneMatrices;
 }

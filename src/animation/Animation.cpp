@@ -1,5 +1,11 @@
 #include "Animation.h"
+#include "../graphics/Model.h" // <-- Добавим для Model
+#include "../core/Utils.h"    // <--- ДОБАВИТЬ ЭТОТ ИНКЛУД
 #include <algorithm>
+#include <assimp/Importer.hpp> // <-- Добавим инклуды для Assimp
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <cassert>
 
 Animation::Animation(const std::string& animationPath, Model* model) {
     Assimp::Importer importer;

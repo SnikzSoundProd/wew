@@ -1,6 +1,6 @@
 #pragma once
 #include "Mesh.h"
-#include "../animation/AnimData.h" // <-- ВМЕСТО ОБЪЯВЛЕНИЙ
+#include "../animation/AnimData.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

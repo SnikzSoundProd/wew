@@ -1,6 +1,7 @@
 #include "Model.h"
 #include <iostream>
 #include "../core/ResourceManager.h" // Для загрузки текстур
+#include "../core/Utils.h"
 
 Model::Model(const std::string& path) {
     loadModel(path);
