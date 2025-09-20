@@ -1,5 +1,6 @@
 #include "PlayerControllerComponent.h"
 #include "../core/GameObject.h"
+#include "../core/PhysicsEngine.h"
 #include "RigidbodyComponent.h"
 #include "AnimationComponent.h"
 #define GLM_ENABLE_EXPERIMENTAL
@@ -30,6 +31,10 @@ void PlayerControllerComponent::init(GLFWwindow* window) {
     std::cout << "PlayerController инициализирован с окном: " << (m_window ? "OK" : "FAIL") << std::endl;
 }
 
+// Добавим новый метод для установки камеры
+void PlayerControllerComponent::setCamera(Camera* camera) {
+    m_camera = camera;
+}
 
 void PlayerControllerComponent::update(float deltaTime) {
     if (!m_rigidbody || !m_window) return;
@@ -94,6 +99,27 @@ void PlayerControllerComponent::update(float deltaTime) {
         }
     }
 
+     // --- НОВЫЙ БЛОК: СТРЕЛЬБА ---
+    // glfwGetMouseButton проверяет клик, а не зажатие
+    if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        if (m_camera) {
+            // 1. Выпускаем луч из позиции камеры в направлении ее взгляда
+            glm::vec3 rayFrom = m_camera->position;
+            glm::vec3 rayTo = rayFrom + m_camera->front * 100.0f; // Луч длиной 100 метров
+
+            // 2. Делаем рейкаст
+            RaycastResult result = PhysicsEngine::GetInstance().raycast(rayFrom, rayTo);
+
+            // 3. Если во что-то попали, и это не статичный пол
+            if (result.hasHit && result.body && result.body->getMass() > 0.0f) {
+                // 4. "Пинаем" этот объект!
+                btVector3 impulse = btVector3(m_camera->front.x, m_camera->front.y, m_camera->front.z);
+                impulse.normalize();
+                result.body->applyCentralImpulse(impulse * shootImpulse);
+            }
+        }
+    }
+    
     // Отладка (каждые 30 кадров)
     static int debugCounter = 0;
     if (debugCounter % 30 == 0) {

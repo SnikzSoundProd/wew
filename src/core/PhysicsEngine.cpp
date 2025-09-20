@@ -38,3 +38,22 @@ void PhysicsEngine::addRigidbody(btRigidBody* body) {
         m_dynamicsWorld->addRigidBody(body);
     }
 }
+
+RaycastResult PhysicsEngine::raycast(const glm::vec3& from, const glm::vec3& to) {
+    btVector3 btFrom(from.x, from.y, from.z);
+    btVector3 btTo(to.x, to.y, to.z);
+
+    btCollisionWorld::ClosestRayResultCallback closestResults(btFrom, btTo);
+    
+    // Запускаем тест
+    m_dynamicsWorld->rayTest(btFrom, btTo, closestResults);
+
+    RaycastResult result;
+    if (closestResults.hasHit()) {
+        result.hasHit = true;
+        result.point = glm::vec3(closestResults.m_hitPointWorld.x(), closestResults.m_hitPointWorld.y(), closestResults.m_hitPointWorld.z());
+        result.body = (btRigidBody*)btRigidBody::upcast(closestResults.m_collisionObject);
+    }
+
+    return result;
+}

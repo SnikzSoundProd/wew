@@ -1,6 +1,13 @@
 #pragma once
 #include <btBulletDynamicsCommon.h>
 #include <vector>
+#include <glm/glm.hpp>
+
+struct RaycastResult {
+    bool hasHit = false;
+    glm::vec3 point;
+    btRigidBody* body = nullptr;
+};
 
 class PhysicsEngine {
 public:
@@ -15,6 +22,7 @@ public:
 
     void addRigidbody(btRigidBody* body);
     btDiscreteDynamicsWorld* getDynamicsWorld() const { return m_dynamicsWorld; }
+    RaycastResult raycast(const glm::vec3& from, const glm::vec3& to);
 
 private:
     PhysicsEngine() = default;

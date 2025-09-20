@@ -13,6 +13,7 @@ public:
     float moveSpeed = 5.0f;
     float jumpForce = 5.0f;
     float rotationSpeed = 10.0f;
+    float shootImpulse = 20.0f;
     
     PlayerControllerComponent() = default;
 
@@ -24,6 +25,7 @@ private:
     RigidbodyComponent* m_rigidbody = nullptr;
     AnimationComponent* m_animComp = nullptr;
     GLFWwindow* m_window = nullptr; // Нам нужно окно, чтобы проверять нажатия
+    Camera* m_camera = nullptr;
 
     glm::quat m_targetRotation;
 };

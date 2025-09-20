@@ -104,6 +104,7 @@ void Engine::init() {
     backpackObject->addComponent<BoxColliderComponent>();
     auto controller = backpackObject->addComponent<PlayerControllerComponent>();
     controller->init(m_window); // Передаем окно явно
+    controller->setCamera(&m_camera);
     backpackRb->init();
 }
 
